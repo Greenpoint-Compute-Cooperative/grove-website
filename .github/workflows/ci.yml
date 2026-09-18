@@ -1,0 +1,37 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  html-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Every HTML file parses and local references exist
+        run: |
+          python3 - <<'PY'
+          import html.parser, pathlib, sys
+          bad = []
+          for f in pathlib.Path('.').rglob('*.html'):
+              if '.git' in f.parts or 'node_modules' in f.parts: continue
+              class P(html.parser.HTMLParser):
+                  refs = []
+                  def handle_starttag(self, tag, attrs):
+                      a = dict(attrs)
+                      for k in ('src', 'href'):
+                          v = a.get(k)
+                          if v and not v.startswith(('http', '//', '#', 'mailto:', 'data:', 'tel:')): self.refs.append(v.split('?')[0].split('#')[0])
+              p = P(); p.feed(f.read_text(errors='replace'))
+              for r in p.refs:
+                  target = (f.parent / r) if not r.startswith('/') else pathlib.Path('.') / r.lstrip('/')
+                  if r and not target.exists() and not r.endswith('/'): bad.append(f"{f}: {r}")
+          print("\n".join(bad) or "all local references resolve"); sys.exit(1 if bad else 0)
+          PY
+  secret-scan:
+    uses: Greenpoint-Compute-Cooperative/.github/.github/workflows/secret-scan.yml@main
