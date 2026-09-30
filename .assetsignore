@@ -1,0 +1,12 @@
+# Repository plumbing and agent notes that must not be served.
+.git
+.github
+.gitignore
+.assetsignore
+.wrangler
+.claude
+wrangler.toml
+AGENT_PROMPT.md
+CLAUDE.md
+README.md
+specs

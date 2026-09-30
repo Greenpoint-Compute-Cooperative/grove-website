@@ -1,0 +1,12 @@
+# Cloudflare deployment for The Grove (grov3.net): a Worker that serves this
+# directory as static files, no script. The live domain is still served by
+# Vercel; this origin is the copy the domain moves to.
+name = "grove-website"
+compatibility_date = "2026-09-01"
+workers_dev = true
+preview_urls = true
+
+[assets]
+directory = "."
+html_handling = "auto-trailing-slash"
+not_found_handling = "none"
